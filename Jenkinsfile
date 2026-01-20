@@ -17,33 +17,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat '''
-                docker build -t %IMAGE_NAME% .
-                '''
+                bat 'docker build -t %IMAGE_NAME% .'
             }
         }
 
         stage('Remove Old Container') {
             steps {
                 bat '''
-                docker stop %CONTAINER_NAME% >nul 2>&1
-                docker rm %CONTAINER_NAME% >nul 2>&1
+                docker stop %CONTAINER_NAME% >nul 2>&1 || exit 0
+                docker rm %CONTAINER_NAME% >nul 2>&1 || exit 0
                 '''
             }
         }
 
         stage('Run Container') {
             steps {
-                bat '''
-                docker run -d -p %PORT%:80 --name %CONTAINER_NAME% %IMAGE_NAME%
-                '''
+                bat 'docker run -d -p %PORT%:80 --name %CONTAINER_NAME% %IMAGE_NAME%'
             }
         }
     }
 
     post {
         success {
-            echo "CI/CD Pipeline Successful with Docker!"
+            echo "Docker CI/CD Pipeline Successful!"
             echo "Open: http://localhost:8090"
         }
     }

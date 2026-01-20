@@ -1,18 +1,28 @@
 pipeline {
     agent any
 
+    environment {
+        DEPLOY_DIR = "C:\\calculator-app"
+        PORT = "8090"
+    }
+
     stages {
-        stage('Clone Code') {
+
+        stage('Deploy Files') {
             steps {
-                echo 'Code cloned from GitHub'
+                bat '''
+                if not exist %DEPLOY_DIR% mkdir %DEPLOY_DIR%
+                copy index.html %DEPLOY_DIR%
+                '''
             }
         }
 
-        stage('Deploy') {
+        stage('Start Server') {
             steps {
-                sh '''
-                mkdir -p /tmp/calculator
-                cp index.html /tmp/calculator/
+                bat '''
+                taskkill /F /IM python.exe >nul 2>&1
+                cd %DEPLOY_DIR%
+                python -m http.server %PORT%
                 '''
             }
         }
@@ -21,6 +31,7 @@ pipeline {
     post {
         success {
             echo "Calculator deployed successfully!"
+            echo "Open: http://localhost:8090"
         }
     }
 }

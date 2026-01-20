@@ -20,9 +20,9 @@ pipeline {
         stage('Start Server') {
             steps {
                 bat '''
-                taskkill /F /IM python.exe >nul 2>&1
+                taskkill /F /IM node.exe >nul 2>&1
                 cd %DEPLOY_DIR%
-                python -m http.server %PORT%
+                npx serve . -l %PORT%
                 '''
             }
         }

@@ -2,27 +2,40 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_DIR = "C:\\calculator-app"
+        IMAGE_NAME = "my-calculator-app"
+        CONTAINER_NAME = "my-calculator-container"
         PORT = "8090"
     }
 
     stages {
 
-        stage('Deploy Files') {
+        stage('Checkout') {
+            steps {
+                echo "Using code from GitHub"
+            }
+        }
+
+        stage('Build Docker Image') {
             steps {
                 bat '''
-                if not exist %DEPLOY_DIR% mkdir %DEPLOY_DIR%
-                copy index.html %DEPLOY_DIR%
+                docker build -t %IMAGE_NAME% .
                 '''
             }
         }
 
-        stage('Start Server') {
+        stage('Remove Old Container') {
             steps {
                 bat '''
-                taskkill /F /IM node.exe >nul 2>&1
-                cd %DEPLOY_DIR%
-                npx serve . -l %PORT%
+                docker stop %CONTAINER_NAME% >nul 2>&1
+                docker rm %CONTAINER_NAME% >nul 2>&1
+                '''
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                bat '''
+                docker run -d -p %PORT%:80 --name %CONTAINER_NAME% %IMAGE_NAME%
                 '''
             }
         }
@@ -30,7 +43,7 @@ pipeline {
 
     post {
         success {
-            echo "Calculator deployed successfully!"
+            echo "CI/CD Pipeline Successful with Docker!"
             echo "Open: http://localhost:8090"
         }
     }
